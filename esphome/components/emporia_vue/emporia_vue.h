@@ -90,9 +90,9 @@ class PhaseConfig {
 };
 
 enum CTInputPort : uint8_t {
-  A = 2,
+  A = 0,
   B = 1,
-  C = 0,
+  C = 2,
   ONE = 3,
   TWO = 4,
   THREE = 5,

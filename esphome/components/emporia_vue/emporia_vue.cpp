@@ -93,7 +93,7 @@ void PhaseConfig::update_from_reading(const SensorReading &sensor_reading) {
   // validation that these sensors are allowed on this phase is done in the codegen stage
   if (this->frequency_sensor_) {
     // see https://github.com/emporia-vue-local/esphome/pull/88 for constant explanation
-    float frequency = 19610.0f / (float) raw_frequency;
+    float frequency = 25310.0f / (float) raw_frequency;
     this->frequency_sensor_->publish_state(frequency);
   }
   if (this->phase_angle_sensor_) {
@@ -129,12 +129,10 @@ void CTClampConfig::update_from_reading(const SensorReading &sensor_reading) {
     uint16_t raw_current = sensor_reading.current[this->input_port_];
     double raw_current_d = (double) raw_current;
     double scalar;
-    if (this->input_port_ == CTInputPort::A ||
-        this->input_port_ == CTInputPort::B ||
-        this->input_port_ == CTInputPort::C) {
-      scalar = 775.0 / 42624.0;   // mains clamps
+    if (this->input_port_ <= CTInputPort::C) {
+      scalar = 775.0 / 42624.0;
     } else {
-      scalar = 775.0 / 170496.0;  // branch clamps
+      scalar = 775.0 / 170496.0;
     }
     this->current_sensor_->publish_state(raw_current_d * scalar);
   }
@@ -143,14 +141,7 @@ void CTClampConfig::update_from_reading(const SensorReading &sensor_reading) {
 float CTClampConfig::get_calibrated_power(int32_t raw_power) const {
   float calibration = this->phase_->get_calibration();
 
-  float correction_factor;
-  if (this->input_port_ == CTInputPort::A ||
-      this->input_port_ == CTInputPort::B ||
-      this->input_port_ == CTInputPort::C) {
-    correction_factor = 5.5f;   // mains clamps
-  } else {
-    correction_factor = 22.0f;  // branch clamps
-  }
+  float correction_factor = (this->input_port_ < 3) ? 5.5 : 22;
 
   return (raw_power * calibration) / correction_factor;
 }
